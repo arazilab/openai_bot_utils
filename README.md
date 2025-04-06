@@ -14,7 +14,7 @@ A lightweight Python module for building chat-based bots using OpenAI's API. Thi
 Clone the repo into your project:
 
 ```bash
-git clone git@github.com:your-username/openai_bot_utils.git
+git clone https://github.com/arazilab/openai_bot_utils.git
 ```
 
 ## 🧩 How to Use
