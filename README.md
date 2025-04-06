@@ -77,7 +77,3 @@ Method:
 ```python
 bot.receive_output(user_input)  # returns assistant's reply
 ```
-
-## 🔒 License
-
-This is a private utility. Not meant for public distribution.
