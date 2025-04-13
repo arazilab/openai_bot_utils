@@ -4,7 +4,8 @@ A lightweight Python module for building chat-based bots using OpenAI's API. Thi
 
 ## 🧠 Features
 
-- Class-based structure with memory (chat history)
+- Class-based structure
+- Optional memory mode (enabled by default) — disable it for stateless interactions
 - Customizable temperature, model, and token limits
 - Supports `text` or `json_object` response formats
 - Easy to import and re-use across multiple projects
@@ -26,19 +27,36 @@ import sys
 sys.path.append('./openai_bot_utils')
 from bot_utils.core import Bot
 ```
-2. Initialize and Chat
+2. Create a bot instance and chat
 
 ```python
+# Create a stateful bot (default): remembers previous messages
 bot = Bot(
-    system_prompt="You are a helpful assistant.",
-    model="gpt-4o-mini",
-    temperature=0.7,
-    response_format="text",
-    max_completion_tokens=1024
+    system_prompt="You are a helpful assistant.",  # Initial instruction to guide the bot's behavior
+    model="gpt-4o-mini",                           # OpenAI model to use
+    temperature=0.7,                               # Controls randomness: higher = more creative
+    response_format="text",                        # Can also be "json_object" if needed
+    max_completion_tokens=1024                     # Limits how long the response can be
 )
 
+# Start chatting
 response = bot.receive_output("Hello, who are you?")
 print(response)
+```
+
+3. (Optional) Create a stateless bot
+
+If you want a one-turn interaction — where the bot does not remember anything from past messages — set `memory=False`:
+
+```
+# Stateless bot: does not keep track of previous inputs or outputs
+stateless_bot = Bot(
+    system_prompt="You are a helpful assistant.",
+    memory=False
+)
+
+# Every call is treated like the first interaction
+print(stateless_bot.receive_output("What's your name?"))  # Bot has no memory of earlier messages
 ```
 
 ## 🧱 Classes
@@ -63,7 +81,7 @@ Handles the full chat interaction, stores the history, and returns model respons
 Constructor:
 
 ```python
-Bot(system_prompt, model="gpt-4o-mini", temperature=1.0, response_format="text", max_completion_tokens=2048)
+Bot(system_prompt, model="gpt-4o-mini", temperature=1.0, response_format="text", max_completion_tokens=2048, memory=True)
 ```
 
 - system_prompt: Instruction for the assistant’s behavior
