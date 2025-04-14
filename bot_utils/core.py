@@ -48,7 +48,7 @@ class Bot:
 
     Attributes:
         system_prompt (str): The initial prompt that sets the behavior of the assistant.
-        model (str): OpenAI model to use (e.g., 'gpt-4o-mini').
+        model (str): OpenAI model to use (e.g., 'gpt-4.1-nano').
         temperature (float): Controls randomness in output. Higher values = more random.
         response_format (str): Format of the response, either 'text' or 'json_object'.
         max_completion_tokens (int): Maximum number of tokens in the completion.
@@ -59,7 +59,7 @@ class Bot:
     def __init__(
         self,
         system_prompt,
-        model="gpt-4o-mini",
+        model="gpt-4.1-nano",
         temperature=1.0,
         response_format="text",
         max_completion_tokens=2048,
@@ -70,7 +70,7 @@ class Bot:
 
         Args:
             system_prompt (str): Initial system message to set assistant behavior.
-            model (str, optional): Model to use. Default is 'gpt-4o-mini'.
+            model (str, optional): Model to use. Default is 'gpt-4.1-nano'.
             temperature (float, optional): Randomness in output. Default is 1.0.
             response_format (str, optional): 'text' or 'json_object'. Default is 'text'.
             max_completion_tokens (int, optional): Max tokens for a reply. Default is 2048.
