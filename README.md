@@ -2,7 +2,7 @@
 
 A lightweight Python module for building chat-based bots using OpenAI's API. This utility keeps track of message history if enabled and simplifies working with the Chat Completions endpoint.
 
-🧠 Features
+## 🧠 Features
 
 - Class-based structure
 - Optional memory mode (disabled by default) — enable it for stateful interactions
@@ -10,7 +10,7 @@ A lightweight Python module for building chat-based bots using OpenAI's API. Thi
 - Supports text or json_object response formats
 - Easy to import and re-use across multiple projects
 
-📦 Installation
+## 📦 Installation
 
 Clone the repo into your project:
 
@@ -18,7 +18,7 @@ Clone the repo into your project:
 git clone https://github.com/arazilab/openai_bot_utils.git
 ```
 
-🧩 How to Use
+## 🧩 How to Use
 
 Add to `sys.path` and import:
 
@@ -60,7 +60,7 @@ stateful_bot = Bot(
 print(stateful_bot.receive_output("What's your name?"))
 ```
 
-🧱 Classes
+## 🧱 Classes
 
 ### `Message`
 
