@@ -9,6 +9,7 @@ A lightweight Python module for building chat-based bots using OpenAI's API. Thi
 - Customizable temperature, model, and token limits
 - Supports text or json_object response formats
 - Easy to import and re-use across multiple projects
+- Includes a voting-based `BooleanConsensusAgent` for structured yes/no questions with repeat sampling
 
 ## 📦 Installation
 
@@ -26,6 +27,7 @@ Add to `sys.path` and import:
 import sys
 sys.path.append('./openai_bot_utils')
 from bot_utils.core import Bot
+from bot_utils.boolean_consensus_agent import BooleanConsensusAgent
 ```
 
 ### Create a bot instance and chat
@@ -48,8 +50,6 @@ print(response)
 
 ### (Optional) Enable memory for stateful conversations
 
-If you want the bot to remember past messages, set `memory=True`:
-
 ```python
 # Stateful bot: keeps history across turns
 stateful_bot = Bot(
@@ -60,13 +60,43 @@ stateful_bot = Bot(
 print(stateful_bot.receive_output("What's your name?"))
 ```
 
+### Use `BooleanConsensusAgent` for reliable yes/no answers
+
+This special agent repeatedly asks the model a yes/no question and aggregates the results to improve reliability.
+
+You can specify:
+- `n_votes`: how many times to ask and return majority
+- `target_confidence`: minimum confidence required, based on entropy (needs `min_votes` and `max_votes` too)
+
+#### Example: Majority vote
+
+```python
+agent = BooleanConsensusAgent(
+    question="Is this email likely to be a phishing attempt?",
+    n_votes=7
+)
+result = agent("This is a limited time offer! Click here to claim your prize.")
+print(result)  # True or False
+```
+
+#### Example: Confidence-based vote
+
+```python
+agent = BooleanConsensusAgent(
+    question="Is this review positive?",
+    target_confidence=0.8,
+    min_votes=5,
+    max_votes=11
+)
+result = agent("This product is amazing. I use it every day.")
+print(result)  # True or False
+```
+
 ## 🧱 Classes
 
 ### `Message`
 
 Represents a single message in the conversation.
-
-**Constructor**:
 
 ```python
 Message(role, content)
@@ -78,8 +108,6 @@ Message(role, content)
 ### `Bot`
 
 Handles full chat interaction and history (if enabled).
-
-**Constructor**:
 
 ```python
 Bot(
@@ -96,4 +124,25 @@ Bot(
 
 ```python
 bot.receive_output(user_input)  # returns assistant's reply
+```
+
+### `BooleanConsensusAgent`
+
+Makes yes/no decisions by repeating prompts and aggregating answers.
+
+```python
+BooleanConsensusAgent(
+    question,
+    n_votes=None,
+    target_confidence=None,
+    min_votes=3,
+    max_votes=11,
+    model="gpt-4.1-nano"
+)
+```
+
+**Call**:
+
+```python
+agent(datapoint)  # returns True or False
 ```
