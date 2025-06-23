@@ -63,7 +63,7 @@ class Bot:
         temperature=1.0,
         response_format="text",
         max_completion_tokens=2048,
-        memory=True
+        memory=False
     ):
         """
         Initializes the Bot instance.
@@ -74,7 +74,7 @@ class Bot:
             temperature (float, optional): Randomness in output. Default is 1.0.
             response_format (str, optional): 'text' or 'json_object'. Default is 'text'.
             max_completion_tokens (int, optional): Max tokens for a reply. Default is 2048.
-            memory (bool, optional): Whether to remember past messages. Default is True.
+            memory (bool, optional): Whether to remember past messages. Default is False.
         """
         self.system_prompt = system_prompt
         self.model = model
