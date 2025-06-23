@@ -96,7 +96,7 @@ Replace [True/False] with the determined boolean value."""
         bot = Bot(system_prompt=self.system_prompt, model=self.model, response_format="json_object", memory=False)
 
         for _ in range(self.n_votes):
-            response = bot.receive_output(datapoint)
+            response_str = bot.receive_output(datapoint)
             try:
                 response = json.loads(response_str.strip())
                 decision = response.get("answer", False)
@@ -130,7 +130,7 @@ Replace [True/False] with the determined boolean value."""
         bot = Bot(system_prompt=self.system_prompt, model=self.model, response_format="json_object", memory=False)
 
         for _ in range(self.max_votes):
-            response = bot.receive_output(datapoint)
+            response_str = bot.receive_output(datapoint)
             try:
                 response = json.loads(response_str.strip())
                 decision = response.get("answer", False)
