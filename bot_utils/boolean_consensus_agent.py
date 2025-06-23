@@ -100,8 +100,8 @@ Replace [True/False] with the determined boolean value."""
             try:
                 response = json.loads(response_str.strip())
                 decision = response.get("answer", False)
-                if isinstance(answer, bool):
-                    votes.append(answer)
+                if isinstance(decision, bool):
+                    votes.append(decision)
             except Exception:
                 continue
 
@@ -133,8 +133,8 @@ Replace [True/False] with the determined boolean value."""
             try:
                 response = json.loads(response_str.strip())
                 decision = response.get("answer", False)
-                if isinstance(answer, bool):
-                    votes.append(answer)
+                if isinstance(decision, bool):
+                    votes.append(decision)
             except Exception:
                 continue
 
