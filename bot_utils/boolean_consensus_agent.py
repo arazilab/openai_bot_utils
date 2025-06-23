@@ -1,4 +1,4 @@
-
+import json
 import math
 from collections import Counter
 from bot_utils.core import Bot
@@ -98,7 +98,8 @@ Replace [True/False] with the determined boolean value."""
         for _ in range(self.n_votes):
             response = bot.receive_output(datapoint)
             try:
-                answer = eval(response.strip()).get("answer")
+                response = json.loads(response_str.strip())
+                decision = response.get("answer", False)
                 if isinstance(answer, bool):
                     votes.append(answer)
             except Exception:
@@ -130,7 +131,8 @@ Replace [True/False] with the determined boolean value."""
         for _ in range(self.max_votes):
             response = bot.receive_output(datapoint)
             try:
-                answer = eval(response.strip()).get("answer")
+                response = json.loads(response_str.strip())
+                decision = response.get("answer", False)
                 if isinstance(answer, bool):
                     votes.append(answer)
             except Exception:
