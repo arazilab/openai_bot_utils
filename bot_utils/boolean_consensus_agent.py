@@ -102,8 +102,9 @@ Replace [True/False] with the determined boolean value."""
                 decision = response.get("answer", False)
                 if isinstance(decision, bool):
                     votes.append(decision)
-            except Exception:
-                continue
+            except Exception as exception:
+                print(exception)
+                print(f'Votes so far:\n{votes}\n')
 
             # Early majority check
             c = Counter(votes)
@@ -135,8 +136,9 @@ Replace [True/False] with the determined boolean value."""
                 decision = response.get("answer", False)
                 if isinstance(decision, bool):
                     votes.append(decision)
-            except Exception:
-                continue
+            except Exception as exception:
+                print(exception)
+                print(f'Votes so far:\n{votes}\n')
 
             # Check confidence if we have enough votes
             if len(votes) >= self.min_votes:
