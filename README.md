@@ -1,17 +1,15 @@
 # OpenAI Bot Utils
 
-A lightweight Python module for building bots on top of OpenAI's **Responses API**.  
-It supports stateless and stateful conversations, structured outputs, and repeated-vote agents for reliable yes/no decisions.
+A lightweight Python module for building chat-based bots using OpenAI's API. This utility keeps track of message history if enabled and simplifies working with the Chat Completions endpoint.
 
 ## 🧠 Features
 
-- Modernized for the **Responses API** (`client.responses.create`)
-- Class-based design for clean reuse
-- Optional memory mode for stateful interactions
-- Configurable model, temperature, token limits, reasoning effort, and verbosity
-- Supports **text** and **json_object** response formats
-- Includes a voting-based `BooleanConsensusAgent` for reliable yes/no answers
-- Uses `tqdm` progress bars to visualize vote loops
+- Class-based structure
+- Optional memory mode (disabled by default) — enable it for stateful interactions
+- Customizable temperature, model, and token limits
+- Supports text or json_object response formats
+- Easy to import and re-use across multiple projects
+- Includes a voting-based `BooleanConsensusAgent` for structured yes/no questions with repeat sampling
 
 ## 📦 Installation
 
@@ -34,12 +32,13 @@ from bot_utils.boolean_consensus_agent import BooleanConsensusAgent
 
 ### Create a bot instance and chat
 
-By default, the bot is stateless (does not remember past turns):
+By default, the bot is stateless (it does not remember previous messages):
 
 ```python
+# Stateless bot (default): does not keep track of past messages
 bot = Bot(
     system_prompt="You are a helpful assistant.",
-    model="gpt-5",
+    model="gpt-4.1-nano",
     temperature=0.7,
     response_format="text",
     max_completion_tokens=1024
@@ -52,9 +51,9 @@ print(response)
 ### (Optional) Enable memory for stateful conversations
 
 ```python
+# Stateful bot: keeps history across turns
 stateful_bot = Bot(
     system_prompt="You are a helpful assistant.",
-    model="gpt-5",
     memory=True
 )
 
@@ -63,9 +62,11 @@ print(stateful_bot.receive_output("What's your name?"))
 
 ### Use `BooleanConsensusAgent` for reliable yes/no answers
 
-This agent repeats the yes/no question until either:
-- A fixed number of votes are collected (majority mode), or
-- The confidence level reaches the target threshold (confidence mode).
+This special agent repeatedly asks the model a yes/no question and aggregates the results to improve reliability.
+
+You can specify:
+- `n_votes`: how many times to ask and return majority
+- `target_confidence`: minimum confidence required, based on entropy (needs `min_votes` and `max_votes` too)
 
 #### Example: Majority vote
 
@@ -74,7 +75,6 @@ agent = BooleanConsensusAgent(
     question="Is this email likely to be a phishing attempt?",
     n_votes=7
 )
-
 result = agent("This is a limited time offer! Click here to claim your prize.")
 print(result)  # True or False
 ```
@@ -88,51 +88,56 @@ agent = BooleanConsensusAgent(
     min_votes=5,
     max_votes=11
 )
-
 result = agent("This product is amazing. I use it every day.")
 print(result)  # True or False
 ```
 
 ## 🧱 Classes
 
+### `Message`
+
+Represents a single message in the conversation.
+
+```python
+Message(role, content)
+```
+
+- `role`: 'system', 'user', or 'assistant'
+- `content`: string
+
 ### `Bot`
 
-Wrapper for `client.responses.create`. Handles conversation state, formatting, and response extraction.
+Handles full chat interaction and history (if enabled).
 
 ```python
 Bot(
     system_prompt,
-    model="gpt-5",
+    model="gpt-4.1-nano",
     temperature=1.0,
-    response_format="text",       # "text" or "json_object"
+    response_format="text",
     max_completion_tokens=2048,
-    memory=False,
-    reasoning_effort="minimal",   # minimal | medium | high
-    verbosity="medium",           # low | medium | high
-    store=False,
-    include=None
+    memory=False
 )
 ```
 
 **Method**:
 
 ```python
-bot.receive_output(user_input)  # returns assistant's reply as str
+bot.receive_output(user_input)  # returns assistant's reply
 ```
 
 ### `BooleanConsensusAgent`
 
-Yes/no agent that uses repeated model calls to improve reliability.  
-Runs in **majority vote** or **confidence vote** mode.
+Makes yes/no decisions by repeating prompts and aggregating answers.
 
 ```python
 BooleanConsensusAgent(
     question,
-    n_votes=None,               # set this for fixed number of votes
-    target_confidence=None,     # set this for entropy-based confidence
+    n_votes=None,
+    target_confidence=None,
     min_votes=3,
     max_votes=11,
-    model="gpt-5"
+    model="gpt-4.1-nano"
 )
 ```
 
