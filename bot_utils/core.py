@@ -61,7 +61,7 @@ class Bot:
     def __init__(
         self,
         system_prompt: str,
-        model: str = "gpt-5",
+        model: str = "gpt-5-nano",
         temperature: float = 1.0,
         response_format: str = "text",
         max_completion_tokens: int = 2048,
