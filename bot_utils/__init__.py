@@ -1,13 +1,13 @@
 """
 bot_utils
 
-Lightweight helpers for building bots on OpenAI's Responses API.
-Exports:
-- Bot: wrapper around client.responses.create with optional memory
-- BooleanConsensusAgent: repeated-vote yes/no decision helper
+A lightweight module for building chat-based bots using OpenAI's API.
+Provides the Bot and Message classes with support for message history
+and customizable generation parameters. Includes a voting-based BooleanConsensusAgent
+for structured yes/no decisions with confidence control.
 """
 
-from .core import Bot
+from .core import Bot, Message
 from .boolean_consensus_agent import BooleanConsensusAgent
 
-__all__ = ["Bot", "BooleanConsensusAgent"]
+__all__ = ["Bot", "Message", "BooleanConsensusAgent"]
