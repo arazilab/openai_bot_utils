@@ -4,126 +4,129 @@ from openai import OpenAI
 client = OpenAI()
 
 
-def _pack_content(role: str, text: str) -> dict:
+class Message:
     """
-    Build a single message block for the Responses API.
-    - developer/user use type 'input_text'
-    - assistant uses type 'output_text'
-    """
-    if role == "assistant":
-        return {"role": "assistant", "content": [{"type": "output_text", "text": text}]}
-    elif role in ("developer", "user"):
-        return {"role": role, "content": [{"type": "input_text", "text": text}]}
-    else:
-        raise ValueError("role must be 'developer', 'user', or 'assistant'")
+    Represents a message in a chat conversation for the OpenAI API.
 
-
-def _extract_output_text(resp) -> str:
+    Attributes:
+        role (str): Role of the message sender. One of 'system', 'user', or 'assistant'.
+        content (str): Text content of the message.
     """
-    Safely get the text from Responses API result.
-    Works for current SDKs that expose .output_text,
-    and falls back to the raw structure.
-    """
-    # Preferred aggregate field if available
-    if hasattr(resp, "output_text") and resp.output_text:
-        return resp.output_text
 
-    # Fallback: walk the first output item
-    try:
-        outs = getattr(resp, "output", None) or []
-        if outs and "content" in outs[0] and outs[0]["content"]:
-            first = outs[0]["content"][0]
-            # Some SDKs use {"type": "output_text", "text": "..."}
-            if first.get("type") in ("output_text", "text"):
-                return first.get("text", "")
-    except Exception:
-        pass
-    return ""
+    def __init__(self, role, content):
+        """
+        Initializes a Message instance.
+
+        Args:
+            role (str): Role of the sender.
+            content (str): Message content.
+        """
+        self.role = role
+        self.content = content
+
+    def get_dict(self):
+        """
+        Converts the Message object into a dictionary format required by OpenAI API.
+
+        Returns:
+            dict: Dictionary with role and content formatted for OpenAI API.
+        """
+        return {
+            "role": self.role,
+            "content": [
+                {
+                    "type": "text",
+                    "text": self.content
+                }
+            ]
+        }
 
 
 class Bot:
     """
-    Wrapper for OpenAI Responses API with optional message history (memory).
+    Wrapper for OpenAI's Chat API with optional message history (memory).
 
-    Args:
-        system_prompt: initial instructions. Goes to role 'developer'.
-        model: e.g. 'gpt-5'.
-        temperature: randomness.
-        response_format: 'text' or 'json_object' (mapped to text.format.type).
-        max_completion_tokens: mapped to 'max_output_tokens'.
-        memory: keep conversation history if True.
-        store: set Responses API 'store' flag.
-        include: list of fields for 'include' param.
-        reasoning_effort: 'minimal' | 'medium' | 'high'.
-        verbosity: 'low' | 'medium' | 'high' for text verbosity.
+    Attributes:
+        system_prompt (str): The initial prompt that sets the behavior of the assistant.
+        model (str): OpenAI model to use (e.g., 'gpt-4.1-nano').
+        temperature (float): Controls randomness in output. Higher values = more random.
+        response_format (str): Format of the response, either 'text' or 'json_object'.
+        max_completion_tokens (int): Maximum number of tokens in the completion.
+        memory (bool): Whether to keep message history across calls.
+        messages (list): Stores conversation history if memory is enabled.
     """
 
     def __init__(
         self,
-        system_prompt: str,
-        model: str = "gpt-5-nano",
-        temperature: float = 1.0,
-        response_format: str = "text",
-        max_completion_tokens: int = 2048,
-        memory: bool = False,
-        store: bool = False,
-        include: list | None = None,
-        reasoning_effort: str = "minimal",
-        verbosity: str = "medium",
+        system_prompt,
+        model="gpt-4.1-nano",
+        temperature=1.0,
+        response_format="text",
+        max_completion_tokens=2048,
+        memory=False
     ):
+        """
+        Initializes the Bot instance.
+
+        Args:
+            system_prompt (str): Initial system message to set assistant behavior.
+            model (str, optional): Model to use. Default is 'gpt-4.1-nano'.
+            temperature (float, optional): Randomness in output. Default is 1.0.
+            response_format (str, optional): 'text' or 'json_object'. Default is 'text'.
+            max_completion_tokens (int, optional): Max tokens for a reply. Default is 2048.
+            memory (bool, optional): Whether to remember past messages. Default is False.
+        """
         self.system_prompt = system_prompt
         self.model = model
         self.temperature = temperature
         self.response_format = response_format
-        self.max_output_tokens = max_completion_tokens  # renamed for Responses API
+        self.max_completion_tokens = max_completion_tokens
         self.memory = memory
-        self.store = store
-        self.include = include or []
-        self.reasoning_effort = reasoning_effort
-        self.verbosity = verbosity
+        self.messages = []
 
-        # Internal message buffer in Responses format
-        self.messages: list[dict] = []
+        # If memory is enabled, store the initial system prompt
         if self.memory:
-            self.messages.append(_pack_content("developer", self.system_prompt))
+            self.messages.append(Message('system', system_prompt).get_dict())
 
-    def _format_block(self, role: str, text: str) -> dict:
-        return _pack_content(role, text)
+    def receive_output(self, input):
+        """
+        Sends user input to the OpenAI API and returns the assistant's reply.
 
-    def _text_format(self) -> dict:
-        # Map old response_format to Responses text.format
-        # 'text' -> {"type": "text"}; 'json_object' -> {"type": "json"}
-        fmt_type = "text" if self.response_format != "json_object" else "json"
-        return {"format": {"type": fmt_type}, "verbosity": self.verbosity}
+        Args:
+            input (str): The user message to send.
 
-    def receive_output(self, user_input: str) -> str:
-        # Build the input list
+        Returns:
+            str: The assistant's response message.
+        """
+        # If memory is enabled, append the user message and reuse full message history
         if self.memory:
-            self.messages.append(self._format_block("user", user_input))
-            input_blocks = self.messages
+            self.messages.append(Message('user', input).get_dict())
+            prompt_messages = self.messages
         else:
-            input_blocks = [
-                self._format_block("developer", self.system_prompt),
-                self._format_block("user", user_input),
+            # If memory is off, only use system and user messages for each call
+            prompt_messages = [
+                Message('system', self.system_prompt).get_dict(),
+                Message('user', input).get_dict()
             ]
 
-        # Create the response
-        resp = client.responses.create(
+        # Call OpenAI Chat API with the messages
+        response = client.chat.completions.create(
             model=self.model,
-            input=input_blocks,
-            text=self._text_format(),
-            reasoning={"effort": self.reasoning_effort},
-            tools=[],                    # add tools if you use them
+            messages=prompt_messages,
+            response_format={"type": self.response_format},
             temperature=self.temperature,
-            max_output_tokens=self.max_output_tokens,
-            store=self.store,
-            include=self.include,
+            max_completion_tokens=self.max_completion_tokens,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
+            store=False  # Do not store conversation server-side
         )
 
-        output = _extract_output_text(resp)
+        # Extract the assistant's reply from the response
+        output = response.choices[0].message.content
 
-        # If memory, save assistant turn too
+        # If memory is on, store the assistant's reply as well
         if self.memory:
-            self.messages.append(self._format_block("assistant", output))
+            self.messages.append(Message('assistant', output).get_dict())
 
         return output
