@@ -21,5 +21,6 @@ backwards compatibility. To migrate to the new responses API, set
 
 from .core import Bot, Message
 from .boolean_consensus_agent import BooleanConsensusAgent
+from .multiclass_consensus_agent import MultiClassConsensusAgent
 
 __all__ = ["Bot", "Message", "BooleanConsensusAgent"]
