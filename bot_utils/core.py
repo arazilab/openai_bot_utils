@@ -82,23 +82,19 @@ class Message:
 
     def get_dict(self) -> dict:
         """
-        Convert the Message into the dictionary format required by
-        OpenAI. The content is wrapped in a list with a single text
-        item to support multimodal messages, although this class only
-        handles plain text.
+        Convert the Message into a dictionary format compatible with
+        both the Chat Completions API and the Responses API.  The
+        content is returned as a plain string rather than a list of
+        parts.  The OpenAI client automatically wraps plain text as
+        needed.
 
         Returns:
-            A dictionary with keys 'role' and 'content' formatted for
-            the OpenAI client.
+            A dictionary with keys 'role' and 'content'.  The 'content'
+            value is the raw text of the message.
         """
         return {
             "role": self.role,
-            "content": [
-                {
-                    "type": "text",
-                    "text": self.content,
-                }
-            ],
+            "content": self.content,
         }
 
 
