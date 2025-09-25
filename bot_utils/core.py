@@ -127,7 +127,7 @@ class Bot:
             is mapped to the appropriate ``text.format`` configuration.
         max_completion_tokens: The maximum number of tokens the model may
             generate in its completion. When calling the responses API
-            this is passed as ``max_tokens``.
+            this value is passed as ``max_output_tokens``.
         memory: If True, the conversation history is retained and sent
             with each call; otherwise each call is stateless.
         api_mode: Which API endpoint to use: 'chat_completions' or
@@ -255,7 +255,9 @@ class Bot:
                 "model": self.model,
                 "input": prompt_messages,
                 "temperature": self.temperature,
-                "max_tokens": self.max_completion_tokens,
+                # The responses API uses max_output_tokens instead of max_tokens.
+                # See migration guide for details.
+                "max_output_tokens": self.max_completion_tokens,
                 "top_p": 1,
                 "frequency_penalty": 0,
                 "presence_penalty": 0,
