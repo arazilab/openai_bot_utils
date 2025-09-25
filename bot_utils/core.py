@@ -138,6 +138,7 @@ class Bot:
         response_format: str = "text",
         max_completion_tokens: int = 2048,
         memory: bool = False,
+        reasoning: str = "minimal",
         api_mode: str = "chat_completions",
     ) -> None:
         # Store configuration
@@ -147,6 +148,7 @@ class Bot:
         self.response_format = response_format
         self.max_completion_tokens = max_completion_tokens
         self.memory = memory
+        self.reasoning = {"effort": reasoning}
         self.api_mode = api_mode
 
         # Internal message history list
@@ -258,6 +260,7 @@ class Bot:
                 "max_output_tokens": self.max_completion_tokens,
                 "top_p": 1,
                 "store": False,  # do not persist reasoning or tool context
+                "reasoning": self.reasoning
             }
             if text_param:
                 kwargs["text"] = text_param
