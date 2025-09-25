@@ -251,16 +251,16 @@ class Bot:
         elif self.api_mode == "responses":
             # Build text formatting for JSON if necessary
             text_param = self._map_response_format()
+            # Assemble parameters for the responses API.  Unlike the chat
+            # completions endpoint, frequency_penalty and presence_penalty
+            # are not currently supported on responses.create, so they are
+            # omitted.  max_output_tokens limits the reply length.
             kwargs = {
                 "model": self.model,
                 "input": prompt_messages,
                 "temperature": self.temperature,
-                # The responses API uses max_output_tokens instead of max_tokens.
-                # See migration guide for details.
                 "max_output_tokens": self.max_completion_tokens,
                 "top_p": 1,
-                "frequency_penalty": 0,
-                "presence_penalty": 0,
                 "store": False,  # do not persist reasoning or tool context
             }
             if text_param:
